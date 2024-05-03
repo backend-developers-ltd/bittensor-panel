@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "django_probes",
     "django_structlog",
     "constance",
+    "bittensor_panel.users",
     "bittensor_panel.core",
 ]
 
@@ -154,6 +155,8 @@ elif env("DATABASE_URL"):
     DATABASES["default"] = env.db_url("DATABASE_URL")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AUTH_USER_MODEL = "users.User"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
