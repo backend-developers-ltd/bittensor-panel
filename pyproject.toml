@@ -33,8 +33,10 @@ test = [
     'pytest',
     'pytest-django',
     'pytest-xdist',
+    'pytest-mock',
     'ipdb',
     'freezegun',
+    'faker',
 ]
 lint = [
     "ruff",
