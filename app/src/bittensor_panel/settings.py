@@ -197,7 +197,7 @@ else:
     SECURE_SSL_REDIRECT = False
 
 CONSTANCE_BACKEND = "constance.backends.database.DatabaseBackend"
-CONSTANCE_CONFIG = {
+CONSTANCE_CONFIG: dict[str, tuple[str, str, str]] = {
     # "PARAMETER": (default-value, "Help text", type),
 }
 
