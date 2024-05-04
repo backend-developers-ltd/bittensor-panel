@@ -1,8 +1,17 @@
 from django.contrib import admin, messages
 from django.contrib.admin import register
+from django.http.response import (
+    HttpResponseRedirect,
+)
+from django.urls import path, reverse
 
 from .models import HyperParameter
-from .services import HyperParameterUpdateFailed, update_hyperparam
+from .services import (
+    HyperParameterRefreshFailed,
+    HyperParameterUpdateFailed,
+    refresh_hyperparams,
+    update_hyperparam,
+)
 
 
 @register(HyperParameter)
@@ -20,6 +29,26 @@ class HyperParameterAdmin(admin.ModelAdmin):
             update_hyperparam(obj)
         except HyperParameterUpdateFailed as e:
             messages.error(request, str(e))
+
+    def get_urls(self):
+        urls = [
+            path(
+                "refresh-hyperparams/",
+                self.admin_site.admin_view(self.refresh_hyperparams_view),
+                name="refresh_hyperparams",
+            ),
+        ]
+        urls += super().get_urls()
+        return urls
+
+    def refresh_hyperparams_view(self, request):
+        if request.method == "POST":
+            try:
+                refresh_hyperparams()
+            except HyperParameterRefreshFailed as e:
+                messages.error(request, str(e))
+
+        return HttpResponseRedirect(reverse("admin:core_hyperparameter_changelist"))
 
 
 admin.site.site_header = "Bittensor Administration Panel"
