@@ -13,7 +13,7 @@ class HyperParameterSyncFailed(Exception):
 def update_hyperparam(instance: HyperParameter) -> None:
     try:
         result = update_remote_hyperparam(instance.name, instance.value)
-    except Exception as e:
+    except (SystemExit, Exception) as e:
         raise HyperParameterUpdateFailed(
             "Failed to update remote hyperparameter"
         ) from e
@@ -28,7 +28,7 @@ def update_hyperparam(instance: HyperParameter) -> None:
 def sync_hyperparams() -> None:
     try:
         hyperparam_dict = load_hyperparams()
-    except Exception as e:
+    except (SystemExit, Exception) as e:
         raise HyperParameterSyncFailed("Failed to sync hyperparameters") from e
 
     if not hyperparam_dict:
