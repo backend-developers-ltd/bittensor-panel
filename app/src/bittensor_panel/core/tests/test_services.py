@@ -6,7 +6,7 @@ from pytest_mock import MockerFixture
 
 from bittensor_panel.core.models import HyperParameter
 from bittensor_panel.core.services import (
-    HyperParameterSyncFailed,
+    HyperParameterRefreshFailed,
     HyperParameterUpdateFailed,
     refresh_hyperparams,
     update_hyperparam,
@@ -128,7 +128,7 @@ def test_refresh_hyperparams_exception(
     mock_load_hyperparams.side_effect = RuntimeError
 
     with django_assert_num_queries(0):
-        with pytest.raises(HyperParameterSyncFailed):
+        with pytest.raises(HyperParameterRefreshFailed):
             refresh_hyperparams()
 
     assert not HyperParameter.objects.exists()

@@ -6,11 +6,16 @@ class HyperParameterUpdateFailed(Exception):
     pass
 
 
-class HyperParameterSyncFailed(Exception):
+class HyperParameterRefreshFailed(Exception):
     pass
 
 
 def update_hyperparam(instance: HyperParameter) -> None:
+    """
+    Update hyperparameter in the subtensor with the new value and save changes to the database.
+    Raises HyperParameterUpdateFailed if the remote update fails.
+    """
+
     try:
         result = update_remote_hyperparam(instance.name, instance.value)
     except (SystemExit, Exception) as e:
@@ -26,10 +31,14 @@ def update_hyperparam(instance: HyperParameter) -> None:
 
 
 def refresh_hyperparams() -> None:
+    """
+    Load hyperparameters from the subtensor and overwrite corresponding records in the database.
+    """
+
     try:
         hyperparam_dict = load_hyperparams()
     except (SystemExit, Exception) as e:
-        raise HyperParameterSyncFailed("Failed to sync hyperparameters") from e
+        raise HyperParameterRefreshFailed("Failed to sync hyperparameters") from e
 
     if not hyperparam_dict:
         return
