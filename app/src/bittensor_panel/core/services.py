@@ -19,13 +19,9 @@ def update_hyperparam(instance: HyperParameter) -> None:
     try:
         result = update_remote_hyperparam(instance.name, instance.value)
     except (SystemExit, Exception) as e:
-        raise HyperParameterUpdateFailed(
-            "Failed to update remote hyperparameter"
-        ) from e
+        raise HyperParameterUpdateFailed("Failed to update remote hyperparameter") from e
     if not result:
-        raise HyperParameterUpdateFailed(
-            "Failed to update remote hyperparameter. Subtensor returned False."
-        )
+        raise HyperParameterUpdateFailed("Failed to update remote hyperparameter. Subtensor returned False.")
 
     instance.save(update_fields=["value"])
 
@@ -48,6 +44,4 @@ def refresh_hyperparams() -> None:
     for name, value in hyperparam_dict.items():
         objs.append(HyperParameter(name=name, value=value))
 
-    HyperParameter.objects.bulk_create(
-        objs, update_conflicts=True, update_fields=["value"], unique_fields=["name"]
-    )
+    HyperParameter.objects.bulk_create(objs, update_conflicts=True, update_fields=["value"], unique_fields=["name"])

@@ -92,9 +92,7 @@ def mock_wallet(mocker: MockerFixture):
 
 
 @pytest.mark.parametrize("result", [True, False])
-def test_update_remote_hyperparam(
-    mock_subtensor: MagicMock, mock_wallet: MagicMock, result: bool, settings
-):
+def test_update_remote_hyperparam(mock_subtensor: MagicMock, mock_wallet: MagicMock, result: bool, settings):
     mock_subtensor.return_value.set_hyperparameter.return_value = result
 
     name = "difficulty"

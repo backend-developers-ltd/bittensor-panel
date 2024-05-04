@@ -13,9 +13,7 @@ def mock_refresh_hyperparams(mocker: MockerFixture):
     return mocker.patch("bittensor_panel.core.admin.refresh_hyperparams")
 
 
-def test_refresh_hyperparams_view(
-    admin_client: Client, mock_refresh_hyperparams: MagicMock
-):
+def test_refresh_hyperparams_view(admin_client: Client, mock_refresh_hyperparams: MagicMock):
     response = admin_client.post("/admin/core/hyperparameter/refresh-hyperparams/")
 
     mock_refresh_hyperparams.assert_called_once()
@@ -24,9 +22,7 @@ def test_refresh_hyperparams_view(
     assert response.url == "/admin/core/hyperparameter/"
 
 
-def test_refresh_hyperparams_view_exception(
-    admin_client: Client, mock_refresh_hyperparams: MagicMock
-):
+def test_refresh_hyperparams_view_exception(admin_client: Client, mock_refresh_hyperparams: MagicMock):
     mock_refresh_hyperparams.side_effect = HyperParameterRefreshFailed("error")
 
     response = admin_client.post("/admin/core/hyperparameter/refresh-hyperparams/")

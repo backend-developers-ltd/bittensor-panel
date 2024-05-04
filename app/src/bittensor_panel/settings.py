@@ -146,9 +146,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "bittensor_panel.wsgi.application"
 
 DATABASES = {}
-if env(
-    "DATABASE_POOL_URL"
-):  # DB transaction-based connection pool, such as one provided PgBouncer
+if env("DATABASE_POOL_URL"):  # DB transaction-based connection pool, such as one provided PgBouncer
     DATABASES["default"] = {
         **env.db_url("DATABASE_POOL_URL"),
         "DISABLE_SERVER_SIDE_CURSORS": True,  # prevents random cursor errors with transaction-based connection pool
@@ -206,9 +204,7 @@ CONSTANCE_CONFIG: dict[str, tuple[str, str, str]] = {
 
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="")
 CELERY_RESULT_BACKEND = env("CELERY_BROKER_URL", default="")  # store results in Redis
-CELERY_RESULT_EXPIRES = int(
-    timedelta(days=1).total_seconds()
-)  # time until task result deletion
+CELERY_RESULT_EXPIRES = int(timedelta(days=1).total_seconds())  # time until task result deletion
 CELERY_COMPRESSION = "gzip"  # task compression
 CELERY_MESSAGE_COMPRESSION = "gzip"  # result compression
 CELERY_SEND_EVENTS = True  # needed for worker monitoring
@@ -227,9 +223,7 @@ CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=False)
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
-CELERY_WORKER_PREFETCH_MULTIPLIER = env.int(
-    "CELERY_WORKER_PREFETCH_MULTIPLIER", default=10
-)
+CELERY_WORKER_PREFETCH_MULTIPLIER = env.int("CELERY_WORKER_PREFETCH_MULTIPLIER", default=10)
 CELERY_BROKER_POOL_LIMIT = env.int("CELERY_BROKER_POOL_LIMIT", default=50)
 
 EMAIL_BACKEND = env("EMAIL_BACKEND")
