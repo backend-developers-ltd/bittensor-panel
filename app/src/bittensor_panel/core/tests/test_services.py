@@ -1,10 +1,16 @@
 from unittest.mock import MagicMock
 
 import pytest
+from faker import Faker
 from pytest_mock import MockerFixture
 
 from bittensor_panel.core.models import HyperParameter
-from bittensor_panel.core.services import HyperParameterUpdateFailed, update_hyperparam
+from bittensor_panel.core.services import (
+    HyperParameterSyncFailed,
+    HyperParameterUpdateFailed,
+    sync_hyperparams,
+    update_hyperparam,
+)
 
 pytestmark = [pytest.mark.django_db]
 
@@ -68,3 +74,61 @@ def test_update_hyperparam_remote_exception(
     with django_assert_num_queries(0):
         with pytest.raises(HyperParameterUpdateFailed):
             update_hyperparam(hyperparam)
+
+
+@pytest.fixture
+def hyperparam_dict(faker: Faker):
+    return {faker.word(): faker.pyint() for _ in range(10)}
+
+
+@pytest.fixture
+def mock_load_hyperparams(mocker: MockerFixture, hyperparam_dict: dict[str, int]):
+    return mocker.patch(
+        "bittensor_panel.core.services.load_hyperparams", return_value=hyperparam_dict
+    )
+
+
+def test_sync_hyperparams(
+    hyperparam_dict: dict[str, int],
+    mock_load_hyperparams: MagicMock,
+    django_assert_num_queries,
+):
+    assert not HyperParameter.objects.exists()
+
+    with django_assert_num_queries(1):
+        sync_hyperparams()
+
+    assert HyperParameter.objects.count() == len(hyperparam_dict)
+
+    for name, value in HyperParameter.objects.values_list("name", "value"):
+        assert hyperparam_dict[name] == value
+
+
+def test_sync_hyperparams_existing_records(
+    hyperparam_dict: dict[str, int],
+    mock_load_hyperparams: MagicMock,
+    django_assert_num_queries,
+):
+    for name in hyperparam_dict:
+        HyperParameter.objects.create(name=name, value=0)
+
+    with django_assert_num_queries(1):
+        sync_hyperparams()
+
+    assert HyperParameter.objects.count() == len(hyperparam_dict)
+
+    for name, value in HyperParameter.objects.values_list("name", "value"):
+        assert hyperparam_dict[name] == value
+
+
+def test_sync_hyperparams_exception(
+    mock_load_hyperparams: MagicMock,
+    django_assert_num_queries,
+):
+    mock_load_hyperparams.side_effect = RuntimeError
+
+    with django_assert_num_queries(0):
+        with pytest.raises(HyperParameterSyncFailed):
+            sync_hyperparams()
+
+    assert not HyperParameter.objects.exists()
