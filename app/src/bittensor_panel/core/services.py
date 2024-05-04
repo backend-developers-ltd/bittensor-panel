@@ -25,7 +25,7 @@ def update_hyperparam(instance: HyperParameter) -> None:
     instance.save(update_fields=["value"])
 
 
-def sync_hyperparams() -> None:
+def refresh_hyperparams() -> None:
     try:
         hyperparam_dict = load_hyperparams()
     except (SystemExit, Exception) as e:

@@ -8,7 +8,7 @@ from bittensor_panel.core.models import HyperParameter
 from bittensor_panel.core.services import (
     HyperParameterSyncFailed,
     HyperParameterUpdateFailed,
-    sync_hyperparams,
+    refresh_hyperparams,
     update_hyperparam,
 )
 
@@ -88,7 +88,7 @@ def mock_load_hyperparams(mocker: MockerFixture, hyperparam_dict: dict[str, int]
     )
 
 
-def test_sync_hyperparams(
+def test_refresh_hyperparams(
     hyperparam_dict: dict[str, int],
     mock_load_hyperparams: MagicMock,
     django_assert_num_queries,
@@ -96,7 +96,7 @@ def test_sync_hyperparams(
     assert not HyperParameter.objects.exists()
 
     with django_assert_num_queries(1):
-        sync_hyperparams()
+        refresh_hyperparams()
 
     assert HyperParameter.objects.count() == len(hyperparam_dict)
 
@@ -104,7 +104,7 @@ def test_sync_hyperparams(
         assert hyperparam_dict[name] == value
 
 
-def test_sync_hyperparams_existing_records(
+def test_refresh_hyperparams_existing_records(
     hyperparam_dict: dict[str, int],
     mock_load_hyperparams: MagicMock,
     django_assert_num_queries,
@@ -113,7 +113,7 @@ def test_sync_hyperparams_existing_records(
         HyperParameter.objects.create(name=name, value=0)
 
     with django_assert_num_queries(1):
-        sync_hyperparams()
+        refresh_hyperparams()
 
     assert HyperParameter.objects.count() == len(hyperparam_dict)
 
@@ -121,7 +121,7 @@ def test_sync_hyperparams_existing_records(
         assert hyperparam_dict[name] == value
 
 
-def test_sync_hyperparams_exception(
+def test_refresh_hyperparams_exception(
     mock_load_hyperparams: MagicMock,
     django_assert_num_queries,
 ):
@@ -129,6 +129,6 @@ def test_sync_hyperparams_exception(
 
     with django_assert_num_queries(0):
         with pytest.raises(HyperParameterSyncFailed):
-            sync_hyperparams()
+            refresh_hyperparams()
 
     assert not HyperParameter.objects.exists()
