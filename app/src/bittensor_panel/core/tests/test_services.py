@@ -82,9 +82,7 @@ def hyperparam_dict(faker: Faker):
 
 @pytest.fixture
 def mock_load_hyperparams(mocker: MockerFixture, hyperparam_dict: dict[str, int]):
-    return mocker.patch(
-        "bittensor_panel.core.services.load_hyperparams", return_value=hyperparam_dict
-    )
+    return mocker.patch("bittensor_panel.core.services.load_hyperparams", return_value=hyperparam_dict)
 
 
 def test_refresh_hyperparams(
