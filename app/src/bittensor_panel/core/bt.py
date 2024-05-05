@@ -3,9 +3,19 @@ from dataclasses import asdict
 import bittensor
 from django.conf import settings
 
+from .exceptions import (
+    SubtensorConnectionError,
+    SubtensorServerError,
+)
+
 
 def get_subtensor() -> bittensor.subtensor:
-    return bittensor.subtensor(settings.SUBTENSOR_ADDRESS)
+    try:
+        return bittensor.subtensor(settings.SUBTENSOR_ADDRESS)
+    except (SystemExit, Exception) as e:
+        raise SubtensorConnectionError(
+            f"Failed to connect to subtensor at: {settings.SUBTENSOR_ADDRESS}"
+        ) from e
 
 
 def get_wallet() -> bittensor.wallet:
@@ -19,7 +29,12 @@ def get_wallet() -> bittensor.wallet:
 def load_hyperparams() -> dict[str, int] | None:
     st = get_subtensor()
 
-    hyperparams = st.get_subnet_hyperparameters(settings.SUBNET_UID)
+    try:
+        hyperparams = st.get_subnet_hyperparameters(settings.SUBNET_UID)
+    except Exception as e:
+        raise SubtensorServerError(
+            f"Failed to load hyperparameters from subtensor\n{e}"
+        ) from e
 
     if not hyperparams:
         return None
@@ -31,12 +46,17 @@ def update_remote_hyperparam(name: str, value: int) -> bool:
     st = get_subtensor()
     wallet = get_wallet()
 
-    return st.set_hyperparameter(
-        wallet=wallet,
-        netuid=settings.SUBNET_UID,
-        parameter=name,
-        value=value,
-        wait_for_inclusion=False,
-        wait_for_finalization=True,
-        prompt=False,
-    )
+    try:
+        return st.set_hyperparameter(
+            wallet=wallet,
+            netuid=settings.SUBNET_UID,
+            parameter=name,
+            value=value,
+            wait_for_inclusion=False,
+            wait_for_finalization=True,
+            prompt=False,
+        )
+    except Exception as exc:
+        raise SubtensorServerError(
+            f"Failed to update hyperparameter in subtensor\n{exc}"
+        ) from exc

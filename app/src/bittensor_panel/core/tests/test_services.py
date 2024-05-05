@@ -4,10 +4,9 @@ import pytest
 from faker import Faker
 from pytest_mock import MockerFixture
 
+from bittensor_panel.core.exceptions import HyperParameterUpdateFailed
 from bittensor_panel.core.models import HyperParameter
 from bittensor_panel.core.services import (
-    HyperParameterRefreshFailed,
-    HyperParameterUpdateFailed,
     refresh_hyperparams,
     update_hyperparam,
 )
@@ -72,7 +71,7 @@ def test_update_hyperparam_remote_exception(
     hyperparam.value = 999
 
     with django_assert_num_queries(0):
-        with pytest.raises(HyperParameterUpdateFailed):
+        with pytest.raises(RuntimeError):
             update_hyperparam(hyperparam)
 
 
@@ -83,7 +82,9 @@ def hyperparam_dict(faker: Faker):
 
 @pytest.fixture
 def mock_load_hyperparams(mocker: MockerFixture, hyperparam_dict: dict[str, int]):
-    return mocker.patch("bittensor_panel.core.services.load_hyperparams", return_value=hyperparam_dict)
+    return mocker.patch(
+        "bittensor_panel.core.services.load_hyperparams", return_value=hyperparam_dict
+    )
 
 
 def test_refresh_hyperparams(
@@ -126,7 +127,7 @@ def test_refresh_hyperparams_exception(
     mock_load_hyperparams.side_effect = RuntimeError
 
     with django_assert_num_queries(0):
-        with pytest.raises(HyperParameterRefreshFailed):
+        with pytest.raises(RuntimeError):
             refresh_hyperparams()
 
     assert not HyperParameter.objects.exists()

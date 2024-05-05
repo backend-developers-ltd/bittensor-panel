@@ -6,6 +6,10 @@ from faker import Faker
 from pytest_mock import MockerFixture
 
 from bittensor_panel.core import bt
+from bittensor_panel.core.exceptions import (
+    SubtensorConnectionError,
+    SubtensorServerError,
+)
 
 
 def test_get_subtensor(mocker: MockerFixture, settings):
@@ -16,6 +20,18 @@ def test_get_subtensor(mocker: MockerFixture, settings):
     assert st == mock.return_value
 
     mock.assert_called_once_with(settings.SUBTENSOR_ADDRESS)
+
+
+@pytest.mark.parametrize("exc_type", [SystemExit, RuntimeError])
+def test_get_subtensor_exception(mocker: MockerFixture, exc_type):
+    mocker.patch(
+        "bittensor_panel.core.bt.bittensor.subtensor",
+        autospec=True,
+        side_effect=exc_type,
+    )
+
+    with pytest.raises(SubtensorConnectionError):
+        bt.get_subtensor()
 
 
 def test_get_wallet(mocker: MockerFixture, settings):
@@ -86,13 +102,22 @@ def test_load_hyperparams_empty_list(mock_subtensor: MagicMock):
     assert bt.load_hyperparams() is None
 
 
+def test_load_hyperparams_exception(mock_subtensor: MagicMock):
+    mock_subtensor.return_value.get_subnet_hyperparameters.side_effect = RuntimeError
+
+    with pytest.raises(SubtensorServerError):
+        bt.load_hyperparams()
+
+
 @pytest.fixture
 def mock_wallet(mocker: MockerFixture):
     return mocker.patch("bittensor_panel.core.bt.get_wallet", autospec=True)
 
 
 @pytest.mark.parametrize("result", [True, False])
-def test_update_remote_hyperparam(mock_subtensor: MagicMock, mock_wallet: MagicMock, result: bool, settings):
+def test_update_remote_hyperparam(
+    mock_subtensor: MagicMock, mock_wallet: MagicMock, result: bool, settings
+):
     mock_subtensor.return_value.set_hyperparameter.return_value = result
 
     name = "difficulty"
@@ -109,3 +134,12 @@ def test_update_remote_hyperparam(mock_subtensor: MagicMock, mock_wallet: MagicM
         wait_for_finalization=True,
         prompt=False,
     )
+
+
+def test_update_remote_hyperparam_exception(
+    mock_subtensor: MagicMock, mock_wallet: MagicMock
+):
+    mock_subtensor.return_value.set_hyperparameter.side_effect = RuntimeError
+
+    with pytest.raises(SubtensorServerError):
+        bt.update_remote_hyperparam("difficulty", 10)

@@ -5,10 +5,9 @@ from django.http.response import (
 )
 from django.urls import path, reverse
 
+from .exceptions import BittensorAPIError, HyperParameterUpdateFailed
 from .models import HyperParameter
 from .services import (
-    HyperParameterRefreshFailed,
-    HyperParameterUpdateFailed,
     refresh_hyperparams,
     update_hyperparam,
 )
@@ -27,7 +26,7 @@ class HyperParameterAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         try:
             update_hyperparam(obj)
-        except HyperParameterUpdateFailed as e:
+        except (BittensorAPIError, HyperParameterUpdateFailed) as e:
             messages.error(request, str(e))
 
     def get_urls(self):
@@ -45,7 +44,7 @@ class HyperParameterAdmin(admin.ModelAdmin):
         if request.method == "POST":
             try:
                 refresh_hyperparams()
-            except HyperParameterRefreshFailed as e:
+            except BittensorAPIError as e:
                 messages.error(request, str(e))
 
         return HttpResponseRedirect(reverse("admin:core_hyperparameter_changelist"))
