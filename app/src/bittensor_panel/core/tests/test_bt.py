@@ -118,7 +118,7 @@ def test_update_remote_hyperparam(mock_subtensor: MagicMock, mock_wallet: MagicM
     mock_subtensor.return_value.set_hyperparameter.return_value = result
 
     name = "difficulty"
-    value = 10
+    value = "10"
 
     assert bt.update_remote_hyperparam(name, value) == result
 
@@ -137,4 +137,4 @@ def test_update_remote_hyperparam_exception(mock_subtensor: MagicMock, mock_wall
     mock_subtensor.return_value.set_hyperparameter.side_effect = RuntimeError
 
     with pytest.raises(SubtensorServerError):
-        bt.update_remote_hyperparam("difficulty", 10)
+        bt.update_remote_hyperparam("difficulty", "10")

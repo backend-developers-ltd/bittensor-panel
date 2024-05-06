@@ -37,7 +37,7 @@ def load_hyperparams() -> dict[str, int] | None:
     return asdict(hyperparams)
 
 
-def update_remote_hyperparam(name: str, value: int) -> bool:
+def update_remote_hyperparam(name: str, value: str) -> bool:
     st = get_subtensor()
     wallet = get_wallet()
 

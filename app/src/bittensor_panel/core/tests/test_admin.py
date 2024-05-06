@@ -18,7 +18,7 @@ def test_refresh_hyperparams_view(admin_client: Client, mock_refresh_hyperparams
     mock_refresh_hyperparams.assert_called_once()
 
     assert response.status_code == 302
-    assert response.url == "/admin/core/hyperparameter/"
+    assert response.url == "/admin/core/hyperparameter/"  # type: ignore
 
 
 def test_refresh_hyperparams_view_exception(admin_client: Client, mock_refresh_hyperparams: MagicMock):
@@ -27,4 +27,4 @@ def test_refresh_hyperparams_view_exception(admin_client: Client, mock_refresh_h
     response = admin_client.post("/admin/core/hyperparameter/refresh-hyperparams/")
 
     assert response.status_code == 302
-    assert response.url == "/admin/core/hyperparameter/"
+    assert response.url == "/admin/core/hyperparameter/"  # type: ignore
