@@ -8,7 +8,7 @@ def update_hyperparam(instance: HyperParameter) -> None:
     Update hyperparameter in the subtensor with the new value and save changes to the database.
     """
 
-    result = update_remote_hyperparam(instance.name, instance.value)
+    result = update_remote_hyperparam(instance.name, int(instance.value))
 
     if not result:
         raise HyperParameterUpdateFailed("Failed to update remote hyperparameter. Subtensor returned False.")
