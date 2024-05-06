@@ -18,7 +18,7 @@ pytestmark = [pytest.mark.django_db]
 def hyperparam():
     return HyperParameter.objects.create(
         name="test",
-        value=123,
+        value="123",
     )
 
 
@@ -34,7 +34,7 @@ def test_update_hyperparam(
 ):
     mock_update_remote_hyperparam.return_value = True
 
-    new_value = 999
+    new_value = "999"
 
     hyperparam.value = new_value
 
@@ -54,7 +54,7 @@ def test_update_hyperparam_remote_returns_false(
 ):
     mock_update_remote_hyperparam.return_value = False
 
-    hyperparam.value = 999
+    hyperparam.value = "999"
 
     with django_assert_num_queries(0):
         with pytest.raises(HyperParameterUpdateFailed):
@@ -68,7 +68,7 @@ def test_update_hyperparam_remote_exception(
 ):
     mock_update_remote_hyperparam.side_effect = RuntimeError
 
-    hyperparam.value = 999
+    hyperparam.value = "999"
 
     with django_assert_num_queries(0):
         with pytest.raises(RuntimeError):
@@ -77,12 +77,14 @@ def test_update_hyperparam_remote_exception(
 
 @pytest.fixture
 def hyperparam_dict(faker: Faker):
-    return {faker.word(): faker.pyint() for _ in range(10)}
+    return {faker.word(): str(faker.pyint()) for _ in range(10)}
 
 
 @pytest.fixture
 def mock_load_hyperparams(mocker: MockerFixture, hyperparam_dict: dict[str, int]):
-    return mocker.patch("bittensor_panel.core.services.load_hyperparams", return_value=hyperparam_dict)
+    return mocker.patch(
+        "bittensor_panel.core.services.load_hyperparams", return_value=hyperparam_dict
+    )
 
 
 def test_refresh_hyperparams(
