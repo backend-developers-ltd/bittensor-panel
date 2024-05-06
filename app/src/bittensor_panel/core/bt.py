@@ -19,7 +19,6 @@ def get_subtensor() -> bittensor.subtensor:
 def get_wallet() -> bittensor.wallet:
     return bittensor.wallet(
         name=settings.WALLET_NAME,
-        hotkey=settings.WALLET_HOTKEY,
         path=settings.WALLET_PATH,
     )
 

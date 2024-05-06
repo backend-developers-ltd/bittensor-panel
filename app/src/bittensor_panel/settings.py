@@ -313,5 +313,4 @@ if SENTRY_DSN := env("SENTRY_DSN", default=""):
 SUBTENSOR_ADDRESS = env.str("SUBTENSOR_ADDRESS", default="local")
 SUBNET_UID = env.int("SUBNET_UID")
 WALLET_NAME = env.str("WALLET_NAME")
-WALLET_HOTKEY = env.str("WALLET_HOTKEY")
 WALLET_PATH = env.path("WALLET_PATH")
