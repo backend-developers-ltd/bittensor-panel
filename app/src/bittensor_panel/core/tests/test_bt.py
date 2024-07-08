@@ -77,6 +77,8 @@ def hyperparam_values(faker: Faker):
         "max_validators": faker.pyint(),
         "adjustment_alpha": faker.pyint(),
         "difficulty": faker.pyint(),
+        "commit_reveal_weights_interval": faker.pyint(),
+        "commit_reveal_weights_enabled": faker.pyint(),
     }
 
 
