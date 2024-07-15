@@ -2,189 +2,61 @@
 
 Bittensor admin panel
 
-- - -
+![Preview](preview.png)
 
-Skeleton of this project was generated with `cookiecutter-rt-django`, which sometimes gets upgrades that are easy to retrofit into already older projects.
+Web application allowing you to easily manage your bittensor subnet's hyperparameters.
 
-# Base requirements
+# Installation
+
+## Requirements
 
 - docker with [compose plugin](https://docs.docker.com/compose/install/linux/)
 - python 3.11
 - [pdm](https://pdm-project.org)
-- [nox](https://nox.thea.codes)
 
-# Setup development environment
+## Setup
 
 ```sh
 $ ./setup-dev.sh
 docker compose up -d
+```
+
+Open `.env` file in the project root and set required environment variables:
+- SUBTENSOR_ADDRESS
+- SUBNET_UID
+- WALLET_NAME
+- WALLET_PATH
+
+Apply database migrations:
+
+```sh
 cd app/src
 pdm run manage.py wait_for_database --timeout 10
 pdm run manage.py migrate
+```
+
+Create a superuser to access the admin panel:
+
+```sh
+pdm run manage.py createsuperuser
+```
+
+## Starting the application
+
+```sh
+cd app/src
 pdm run manage.py runserver
 ```
+Your application should now be available at `http://localhost:8000`.
 
-# Setup production environment (git deployment)
+# Usage
 
-This sets up "deployment by pushing to git storage on remote", so that:
+## Loading data from the subnet
 
-- `git push origin ...` just pushes code to Github / other storage without any consequences;
-- `git push production master` pushes code to a remote server running the app and triggers a git hook to redeploy the application.
+To load all hyperparameters from the subtensor on first start (or in case you would like to overwrite local data for some reason), click "Refresh from subtensor" button in the top right corner.
 
-```
-Local .git ------------> Origin .git
-                \
-                 ------> Production .git (redeploy on push)
-```
+## Modyfing hyperparameters
 
-- - -
-
-Use `ssh-keygen` to generate a key pair for the server, then add read-only access to repository in "deployment keys" section (`ssh -A` is easy to use, but not safe).
+Find the hyperparameter you would like to change and click on it. You will be presented with a form allowing you to change the value of the hyperparameter. After you are done, click "Save" to save the changes. This will update the hyperparameter in the local database and send the new value to the subtensor.
 
 ```sh
-# remote server
-mkdir -p ~/repos
-cd ~/repos
-git init --bare --initial-branch=master bittensor-panel.git
-
-mkdir -p ~/domains/bittensor-panel
-```
-
-```sh
-# locally
-git remote add production root@<server>:~/repos/bittensor-panel.git
-git push production master
-```
-
-```sh
-# remote server
-cd ~/repos/bittensor-panel.git
-
-cat <<'EOT' > hooks/post-receive
-#!/bin/bash
-unset GIT_INDEX_FILE
-export ROOT=/root
-export REPO=bittensor-panel
-while read oldrev newrev ref
-do
-    if [[ $ref =~ .*/master$ ]]; then
-        export GIT_DIR="$ROOT/repos/$REPO.git/"
-        export GIT_WORK_TREE="$ROOT/domains/$REPO/"
-        git checkout -f master
-        cd $GIT_WORK_TREE
-        ./deploy.sh
-    else
-        echo "Doing nothing: only the master branch may be deployed on this server."
-    fi
-done
-EOT
-
-chmod +x hooks/post-receive
-./hooks/post-receive
-cd ~/domains/bittensor-panel
-sudo bin/prepare-os.sh
-./setup-prod.sh
-
-# adjust the `.env` file
-
-mkdir letsencrypt
-./letsencrypt_setup.sh
-./deploy.sh
-```
-
-### Deploy another branch
-
-Only `master` branch is used to redeploy an application.
-If one wants to deploy other branch, force may be used to push desired branch to remote's `master`:
-
-```sh
-git push --force production local-branch-to-deploy:master
-```
-
-## Monitoring execution time of code blocks
-
-Somewhere, probably in `metrics.py`:
-
-```python
-some_calculation_time = prometheus_client.Histogram(
-    'some_calculation_time',
-    'How Long it took to calculate something',
-    namespace='django',
-    unit='seconds',
-    labelnames=['task_type_for_example'],
-    buckets=[0.5, 1, *range(2, 30, 2), *range(30, 75, 5), *range(75, 135, 15)]
-)
-```
-
-Somewhere else:
-
-```python
-with some_calculation_time.labels('blabla').time():
-    do_some_work()
-```
-
-# AWS
-
-Initiate the infrastructure with Terraform:
-TODO
-
-To push a new version of the application to AWS, just push to a branch named `deploy-$(ENVIRONMENT_NAME)`.
-Typical values for `$(ENVIRONMENT_NAME)` are `prod` and `staging`.
-For this to work, GitHub actions needs to be provided with credentials for an account that has the following policies enabled:
-
-- AutoScalingFullAccess
-- AmazonEC2ContainerRegistryFullAccess
-- AmazonS3FullAccess
-
-See `.github/workflows/cd.yml` to find out the secret names.
-
-# Vultr
-
-Initiate the infrastructure with Terraform and cloud-init:
-
-- see Terraform template in `<project>/devops/vultr_tf/core/`
-- see scripts for interacting with Vultr API in `<project>/devops/vultr_scripts/`
-  - note these scripts need `vultr-cli` installed
-
-- for more details see README_vultr.md
-
-# Setting up periodic backups
-
-Add to crontab:
-
-```sh
-# crontab -e
-30 0 * * * cd ~/domains/bittensor-panel && ./bin/backup-db.sh > ~/backup.log 2>&1
-```
-
-Set `BACKUP_LOCAL_ROTATE_KEEP_LAST` to keep only a specific number of most recent backups in local `.backups` directory.
-
-## Configuring offsite targets for backups
-
-Backups are put in `.backups` directory locally, additionally then can be stored offsite in following ways:
-
-**Backblaze**
-
-Set in `.env` file:
-
-- `BACKUP_B2_BUCKET_NAME`
-- `BACKUP_B2_KEY_ID`
-- `BACKUP_B2_KEY_SECRET`
-
-**Email**
-
-Set in `.env` file:
-
-- `EMAIL_HOST`
-- `EMAIL_PORT`
-- `EMAIL_HOST_USER`
-- `EMAIL_HOST_PASSWORD`
-- `EMAIL_TARGET`
-
-# Restoring system from backup after a catastrophical failure
-
-1. Follow the instructions above to set up a new production environment
-2. Restore the database using bin/restore-db.sh
-3. See if everything works
-4. Set up backups on the new machine
-5. Make sure everything is filled up in .env, error reporting integration, email accounts etc
